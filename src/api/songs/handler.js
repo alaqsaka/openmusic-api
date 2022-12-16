@@ -8,6 +8,7 @@ class SongsHandler {
     this.postSongHandler = this.postSongHandler.bind(this);
     this.getSongsHandler = this.getSongsHandler.bind(this);
     this.getSongByIdHandler = this.getSongByIdHandler.bind(this);
+    this.putSongByIdHandler = this.putSongByIdHandler.bind(this);
   }
 
   async postSongHandler(request, h) {
@@ -18,8 +19,8 @@ class SongsHandler {
         year,
         genre,
         performer,
-        albumId,
-        duration,
+        albumId = "",
+        duration = "",
       } = request.payload;
 
       const songId = await this._service.addSong({
@@ -83,6 +84,47 @@ class SongsHandler {
         data: {
           song: song,
         },
+      };
+    } catch (error) {
+      if (error instanceof ClientError) {
+        const response = h.response({
+          status: "fail",
+          message: error.message,
+        });
+        response.code(error.statusCode);
+        return response;
+      }
+
+      // Server ERROR!
+      const response = h.response({
+        status: "error",
+        message: "Maaf, terjadi kegagalan pada server kami.",
+      });
+      response.code(500);
+      console.error(error);
+      return response;
+    }
+  }
+
+  async putSongByIdHandler(request, h) {
+    try {
+      this._validator.validateSongPayload(request.payload);
+      const { id } = request.params;
+      const { title, year, genre, performer, duration, albumId } =
+        request.payload;
+
+      const song = await this._service.editSongById(id, {
+        title,
+        year,
+        genre,
+        performer,
+        duration,
+        albumId,
+      });
+
+      return {
+        status: "success",
+        message: "Sukses mengedit song",
       };
     } catch (error) {
       if (error instanceof ClientError) {
