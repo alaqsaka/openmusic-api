@@ -4,7 +4,10 @@ const AuthorizationError = require("../../exceptions/AuthorizationError");
 const InvariantError = require("../../exceptions/InvariantError");
 const NotFoundError = require("../../exceptions/NotFoundError");
 // const NotFoundError = require("../../exceptions/NotFoundError");
-const { mapDBToModelPlaylist } = require("../../utils");
+const {
+  mapDBToModelPlaylist,
+  mapDBToModelPlaylistGet,
+} = require("../../utils");
 
 class PlaylistsService {
   constructor() {
@@ -46,6 +49,16 @@ class PlaylistsService {
     if (playlist.owner !== owner) {
       throw new AuthorizationError("Anda tidak berhak mengakses resource ini");
     }
+  }
+
+  async getPlaylists(owner) {
+    const query = {
+      text: "SELECT playlists.*, users.* FROM playlists LEFT JOIN users on users.id = playlists.owner WHERE playlists.owner = $1",
+      values: [owner],
+    };
+
+    const result = await this._pool.query(query);
+    return result.rows.map(mapDBToModelPlaylistGet);
   }
 }
 

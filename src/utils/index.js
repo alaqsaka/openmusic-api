@@ -14,6 +14,12 @@ const mapDBToModelPlaylist = ({ id, name, owner, created_at, updated_at }) => ({
   updatedAt: updated_at,
 });
 
+const mapDBToModelPlaylistGet = ({ id, name, username }) => ({
+  id,
+  name,
+  username,
+});
+
 const mapDBToModelSongs = ({ id, title, performer }) => ({
   id,
   title,
@@ -43,4 +49,5 @@ module.exports = {
   mapDBToModelSong,
   mapDBToModelSongs,
   mapDBToModelPlaylist,
+  mapDBToModelPlaylistGet,
 };
