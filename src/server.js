@@ -21,6 +21,7 @@ const UsersValidator = require("./validator/users");
 const playlists = require("./api/playlists");
 const PlaylistsService = require("./services/postgres/PlaylistsService");
 const PlaylistsValidator = require("./validator/playlists");
+const PlaylistSongValidator = require("./validator/playlist_song");
 
 // authentications
 const authentications = require("./api/authentications");
