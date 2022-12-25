@@ -11,8 +11,9 @@ const {
 } = require("../../utils");
 
 class PlaylistsService {
-  constructor() {
+  constructor(playlistSongsService) {
     this._pool = new Pool();
+    this._playlistSongsService = playlistSongsService;
   }
 
   async addPlaylist({ name, owner }) {
@@ -52,6 +53,16 @@ class PlaylistsService {
     }
   }
 
+  async verifyPlaylistAccess(playlistId, userId) {
+    try {
+      await this.verifyPlaylistOwner(playlistId, userId);
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        throw error;
+      }
+    }
+  }
+
   async getPlaylists(owner) {
     const query = {
       text: "SELECT playlists.*, users.* FROM playlists LEFT JOIN users on users.id = playlists.owner WHERE playlists.owner = $1",
@@ -73,23 +84,6 @@ class PlaylistsService {
     if (!result.rows.length) {
       throw new NotFoundError("Playlist gagal dihapus. Id tidak ditemukan");
     }
-  }
-
-  async postSongsToPlaylist(songId, playlistId) {
-    const id = `playlist-songs-${nanoid(16)}`;
-
-    const query = {
-      text: "INSERT INTO playlist_songs VALUES($1, $2, $3) RETURNING id",
-      values: [id, playlistId, songId],
-    };
-
-    const result = await this._pool.query(query);
-
-    if (!result.rows.length) {
-      throw new InvariantError("Gagal menambahkan lagu ke playlist");
-    }
-
-    return result.rows[0].id;
   }
 }
 

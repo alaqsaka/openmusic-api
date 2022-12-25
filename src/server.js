@@ -21,7 +21,11 @@ const UsersValidator = require("./validator/users");
 const playlists = require("./api/playlists");
 const PlaylistsService = require("./services/postgres/PlaylistsService");
 const PlaylistsValidator = require("./validator/playlists");
-const PlaylistSongValidator = require("./validator/playlist_song");
+
+// playlist_songs
+const playlistSongs = require("./api/playlist_songs");
+const PlaylistSongsService = require("./services/postgres/PlaylistSongsService");
+const PlaylistSongsValidator = require("./validator/playlist_songs");
 
 // authentications
 const authentications = require("./api/authentications");
@@ -33,6 +37,7 @@ const init = async () => {
   const songsService = new SongsService();
   const albumsService = new AlbumsService();
   const usersService = new UsersService();
+  const playlistSongsService = new PlaylistSongsService();
   const playlistsService = new PlaylistsService();
   const authenticationsService = new AuthenticationsService();
 
@@ -91,6 +96,15 @@ const init = async () => {
     options: {
       service: usersService,
       validator: UsersValidator,
+    },
+  });
+
+  await server.register({
+    plugin: playlistSongs,
+    options: {
+      playlistSongsService: playlistSongsService,
+      playlistsService: playlistsService,
+      validator: PlaylistSongsValidator,
     },
   });
 
