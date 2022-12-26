@@ -8,6 +8,7 @@ class PlaylistSongsHandler {
 
     this.postSongsToPlaylistHandler =
       this.postSongsToPlaylistHandler.bind(this);
+    this.getPlaylistSongsHandler = this.getPlaylistSongsHandler.bind(this);
   }
 
   async postSongsToPlaylistHandler(request, h) {
@@ -37,6 +38,68 @@ class PlaylistSongsHandler {
         },
       });
       response.code(201);
+      return response;
+    } catch (error) {
+      if (error instanceof ClientError) {
+        const response = h.response({
+          status: "fail",
+          message: error.message,
+        });
+        response.code(error.statusCode);
+        return response;
+      }
+
+      // Server ERROR!
+      const response = h.response({
+        status: "error",
+        message: "Maaf, terjadi kegagalan pada server kami.",
+      });
+      response.code(500);
+      console.error(error);
+      return response;
+    }
+  }
+
+  async getPlaylistSongsHandler(request, h) {
+    try {
+      const { id: credentialId } = request.auth.credentials;
+      const { playlistId } = request.params;
+      // const { songId } = request.payload;
+      // // validate payload
+      // this._validator.validatePlaylistSongPayload({
+      //   playlistId,
+      //   songId,
+      // });
+
+      await this._playlistsService.verifyPlaylistOwner(
+        playlistId,
+        credentialId
+      );
+
+      const playlistData = await this._playlistSongsService.getPlaylistById(
+        playlistId
+      );
+
+      // console.log("playlist data ", playlistData);
+
+      const songsData =
+        await this._playlistSongsService.getPlaylistSongsByPlaylistId(
+          playlistId
+        );
+
+      // console.log(songsData);
+
+      // console.log("get playlist songs");
+
+      const response = h.response({
+        status: "success",
+        data: {
+          playlist: {
+            ...playlistData,
+            songs: songsData,
+          },
+        },
+      });
       return response;
     } catch (error) {
       if (error instanceof ClientError) {

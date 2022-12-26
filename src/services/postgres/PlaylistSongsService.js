@@ -3,7 +3,12 @@ const { Pool } = require("pg");
 const AuthorizationError = require("../../exceptions/AuthorizationError");
 const InvariantError = require("../../exceptions/InvariantError");
 const NotFoundError = require("../../exceptions/NotFoundError");
-const { mapDBToModelSong } = require("../../utils");
+const {
+  mapDBToModelSong,
+  mapDBToModelSongs,
+  mapDBToModelPlaylist,
+  mapDBToModelPlaylistGet,
+} = require("../../utils");
 
 class PlaylistSongsService {
   constructor() {
@@ -13,7 +18,6 @@ class PlaylistSongsService {
   async addSongsToPlaylist(playlistId, songId) {
     const id = `playlist-songs-${nanoid(16)}`;
 
-    // cek apakah song ada di database
     const getSongByIdQuery = {
       text: "SELECT * FROM songs WHERE id = $1",
       values: [songId],
@@ -45,6 +49,29 @@ class PlaylistSongsService {
     }
 
     return result.rows[0].id;
+  }
+
+  async getPlaylistById(playlistId) {
+    const query = {
+      text: "SELECT playlists.*, users.* FROM playlists LEFT JOIN users on users.id = playlists.owner WHERE playlists.id = $1",
+      values: [playlistId],
+    };
+
+    const result = await this._pool.query(query);
+    return result.rows.map(mapDBToModelPlaylistGet)[0];
+  }
+
+  async getPlaylistSongsByPlaylistId(playlistId) {
+    const queryGetSongsByPlaylistId = {
+      text: "SELECT songs.* FROM songs FULL OUTER JOIN playlist_songs ON songs.id=playlist_songs.song_id WHERE playlist_songs.playlist_id = $1",
+      values: [playlistId],
+    };
+
+    const resultGetSongsByPlaylistId = await this._pool.query(
+      queryGetSongsByPlaylistId
+    );
+
+    return resultGetSongsByPlaylistId.rows.map(mapDBToModelSongs);
   }
 }
 
