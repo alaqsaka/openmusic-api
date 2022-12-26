@@ -15,17 +15,16 @@ class PlaylistSongsHandler {
       const { id: credentialId } = request.auth.credentials;
       const { playlistId } = request.params;
       const { songId } = request.payload;
-
-      console.log(playlistId, songId);
+      // validate payload
+      this._validator.validatePlaylistSongPayload({
+        playlistId,
+        songId,
+      });
 
       await this._playlistsService.verifyPlaylistOwner(
         playlistId,
         credentialId
       );
-
-      // cek apakah song ada di database
-
-      // cek apakah playlist ada di database
 
       const playlistSongsId =
         await this._playlistSongsService.addSongsToPlaylist(playlistId, songId);
