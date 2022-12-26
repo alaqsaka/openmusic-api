@@ -9,6 +9,8 @@ class PlaylistSongsHandler {
     this.postSongsToPlaylistHandler =
       this.postSongsToPlaylistHandler.bind(this);
     this.getPlaylistSongsHandler = this.getPlaylistSongsHandler.bind(this);
+    this.deleteSongOnPlaylistHandler =
+      this.deleteSongOnPlaylistHandler.bind(this);
   }
 
   async postSongsToPlaylistHandler(request, h) {
@@ -16,7 +18,7 @@ class PlaylistSongsHandler {
       const { id: credentialId } = request.auth.credentials;
       const { playlistId } = request.params;
       const { songId } = request.payload;
-      // validate payload
+
       this._validator.validatePlaylistSongPayload({
         playlistId,
         songId,
@@ -99,6 +101,51 @@ class PlaylistSongsHandler {
             songs: songsData,
           },
         },
+      });
+      return response;
+    } catch (error) {
+      if (error instanceof ClientError) {
+        const response = h.response({
+          status: "fail",
+          message: error.message,
+        });
+        response.code(error.statusCode);
+        return response;
+      }
+
+      // Server ERROR!
+      const response = h.response({
+        status: "error",
+        message: "Maaf, terjadi kegagalan pada server kami.",
+      });
+      response.code(500);
+      console.error(error);
+      return response;
+    }
+  }
+
+  async deleteSongOnPlaylistHandler(request, h) {
+    try {
+      const { id: credentialId } = request.auth.credentials;
+      const { playlistId } = request.params;
+      const { songId } = request.payload;
+      console.log(playlistId);
+      console.log(songId);
+      await this._playlistsService.verifyPlaylistOwner(
+        playlistId,
+        credentialId
+      );
+
+      this._validator.validatePlaylistSongPayload({
+        playlistId,
+        songId,
+      });
+
+      this._playlistSongsService.deleteSongOnPlaylist(playlistId, songId);
+
+      const response = h.response({
+        status: "success",
+        message: "Berhasil menghapus lagu di playlist ",
       });
       return response;
     } catch (error) {
