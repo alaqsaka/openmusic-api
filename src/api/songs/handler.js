@@ -20,8 +20,8 @@ class SongsHandler {
         year,
         genre,
         performer,
-        albumId = "",
-        duration = "",
+        albumId = null,
+        duration = null,
       } = request.payload;
 
       const songId = await this._service.addSong({
