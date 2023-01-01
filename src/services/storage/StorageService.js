@@ -18,9 +18,11 @@ class StorageService {
     const fileStream = fs.createWriteStream(path);
 
     // SQL QUERY FOR Input Cover URL
+    // yang dimasukin ke database ada 'http://localhost:5000/upload/images/${filename}'
+    const filePath = `http://localhost:5000/upload/images/${filename}`;
     const query = {
       text: "UPDATE albums SET cover = $1 WHERE id = $2",
-      values: [filename, albumId],
+      values: [filePath, albumId],
     };
 
     const result = await this._pool.query(query);

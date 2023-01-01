@@ -5,7 +5,7 @@ exports.shorthands = undefined;
 exports.up = (pgm) => {
   pgm.addColumns("albums", {
     cover: {
-      type: "VARCHAR(50)",
+      type: "TEXT",
       notNull: false,
     },
   });
