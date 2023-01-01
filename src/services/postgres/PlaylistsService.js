@@ -11,9 +11,10 @@ const {
 } = require("../../utils");
 
 class PlaylistsService {
-  constructor(playlistSongsService) {
+  constructor(playlistSongsService, producerService) {
     this._pool = new Pool();
     this._playlistSongsService = playlistSongsService;
+    this._producerService = producerService;
   }
 
   async addPlaylist({ name, owner }) {

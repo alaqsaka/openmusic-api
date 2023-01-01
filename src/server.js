@@ -44,6 +44,7 @@ const init = async () => {
   const usersService = new UsersService();
   const playlistSongsService = new PlaylistSongsService();
   const playlistsService = new PlaylistsService();
+  const producerService = new ProducerService();
   const authenticationsService = new AuthenticationsService();
 
   const server = Hapi.server({
@@ -134,7 +135,8 @@ const init = async () => {
   await server.register({
     plugin: _exports,
     options: {
-      service: ProducerService,
+      exportService: producerService,
+      playlistsService: playlistsService,
       validator: ExportsValidator,
     },
   });
