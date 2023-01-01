@@ -27,6 +27,7 @@ class ExportsHandler {
       const message = {
         userId: request.auth.credentials.id,
         targetEmail: request.payload.targetEmail,
+        playlistId: playlistId,
       };
 
       await this._exportService.sendMessage({
