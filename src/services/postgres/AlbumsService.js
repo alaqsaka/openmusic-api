@@ -48,6 +48,46 @@ class AlbumsService {
     return result.rows.map(mapDBToModelAlbum)[0];
   }
 
+  async checkLikeAlbum(albumId, credentialId) {
+    console.log("cek like albums");
+
+    const query = {
+      text: `SELECT * FROM user_album_likes WHERE album_id = $1 AND user_id = $2`,
+      values: [albumId, credentialId],
+    };
+
+    const result = await this._pool.query(query);
+    console.log(result);
+    return result.rows;
+  }
+
+  async postLike(albumId, credentialId) {
+    console.log(albumId, credentialId);
+    const id = nanoid(16);
+
+    const query = {
+      text: `INSERT INTO user_album_likes VALUES($1, $2, $3) RETURNING id`,
+      values: [id, credentialId, albumId],
+    };
+
+    const result = await this._pool.query(query);
+
+    return result;
+  }
+
+  async deleteLike(albumId, credentialId) {
+    const query = {
+      text: `DELETE FROM user_album_likes WHERE album_id = $1 AND user_id = $2 RETURNING id`,
+      values: [albumId, credentialId],
+    };
+
+    const result = await this._pool.query(query);
+
+    if (!result.rows.length) {
+      throw new NotFoundError("ALbum gagal dihapus. Id tidak ditemukan");
+    }
+  }
+
   async editAlbumById(id, { name, year }) {
     const updatedAt = new Date().toISOString();
     const query = {
