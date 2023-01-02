@@ -11,6 +11,7 @@ class AlbumsHandler {
     this.putAlbumByIdHandler = this.putAlbumByIdHandler.bind(this);
     this.deleteAlbumByIdHandler = this.deleteAlbumByIdHandler.bind(this);
     this.postLikeHandler = this.postLikeHandler.bind(this);
+    this.getLikesCount = this.getLikesCount.bind(this);
   }
 
   async postAlbumHandler(request, h) {
@@ -60,13 +61,48 @@ class AlbumsHandler {
     };
   }
 
+  async getLikesCount(request, h) {
+    try {
+      const { albumId } = request.params;
+      // Cek apakah album tersedia
+      const album = await this._service.getAlbumById(albumId);
+
+      // get likes count
+      const likesCount = await this._service.getAlbumLikes(albumId);
+
+      const response = h.response({
+        status: "success",
+        data: {
+          likes: Number(likesCount.rows[0].count),
+        },
+      });
+      response.code(200);
+      return response;
+    } catch (error) {
+      if (error instanceof ClientError) {
+        const response = h.response({
+          status: "fail",
+          message: error.message,
+        });
+        response.code(error.statusCode);
+        return response;
+      }
+
+      // Server ERROR!
+      const response = h.response({
+        status: "error",
+        message: "Maaf, terjadi kegagalan pada server kami.",
+      });
+      response.code(500);
+      console.error(error);
+      return response;
+    }
+  }
+
   async postLikeHandler(request, h) {
     try {
       const { albumId } = request.params;
       const { id: credentialId } = request.auth.credentials;
-      // console.log("-->", credentialId);
-      // console.log("--> ", albumId);
-
       // Cek apakah album tersedia
       const album = await this._service.getAlbumById(albumId);
 

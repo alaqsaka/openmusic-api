@@ -88,6 +88,17 @@ class AlbumsService {
     }
   }
 
+  async getAlbumLikes(albumId) {
+    const query = {
+      text: `SELECT COUNT (*) FROM user_album_likes WHERE album_id = $1`,
+      values: [albumId],
+    };
+
+    const result = await this._pool.query(query);
+    console.log(result);
+    return result;
+  }
+
   async editAlbumById(id, { name, year }) {
     const updatedAt = new Date().toISOString();
     const query = {
