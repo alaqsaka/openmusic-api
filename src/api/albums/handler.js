@@ -70,14 +70,26 @@ class AlbumsHandler {
       // get likes count
       const likesCount = await this._service.getAlbumLikes(albumId);
 
-      const response = h.response({
-        status: "success",
-        data: {
-          likes: Number(likesCount.rows[0].count),
-        },
-      });
-      response.code(200);
-      return response;
+      if (typeof likesCount === "string") {
+        const response = h.response({
+          status: "success",
+          data: {
+            likes: Number(JSON.parse(likesCount).rows[0].count),
+          },
+        });
+        response.header("X-Data-Source", "cache");
+        response.code(200);
+        return response;
+      } else {
+        const response = h.response({
+          status: "success",
+          data: {
+            likes: Number(likesCount.rows[0].count),
+          },
+        });
+        response.code(200);
+        return response;
+      }
     } catch (error) {
       if (error instanceof ClientError) {
         const response = h.response({

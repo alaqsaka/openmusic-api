@@ -5,8 +5,9 @@ const NotFoundError = require("../../exceptions/NotFoundError");
 const { mapDBToModelAlbum } = require("../../utils");
 
 class AlbumsService {
-  constructor() {
+  constructor(cacheService) {
     this._pool = new Pool();
+    this._cacheService = cacheService;
   }
 
   async addAlbum({ name, year }) {
@@ -71,7 +72,7 @@ class AlbumsService {
     };
 
     const result = await this._pool.query(query);
-
+    await this._cacheService.delete(`albumLikes:${albumId}`);
     return result;
   }
 
@@ -82,21 +83,34 @@ class AlbumsService {
     };
 
     const result = await this._pool.query(query);
-
+    await this._cacheService.delete(`albumLikes:${albumId}`);
     if (!result.rows.length) {
       throw new NotFoundError("ALbum gagal dihapus. Id tidak ditemukan");
     }
   }
 
   async getAlbumLikes(albumId) {
-    const query = {
-      text: `SELECT COUNT (*) FROM user_album_likes WHERE album_id = $1`,
-      values: [albumId],
-    };
+    try {
+      // get album likes from cache
+      const result = await this._cacheService.get(`albumLikes:${albumId}`);
+      console.log(typeof result);
+      return result;
+    } catch (error) {
+      // bila gagal, diteruskan dengan mendapatkan jumlah likes dari database
+      const query = {
+        text: `SELECT COUNT (*) FROM user_album_likes WHERE album_id = $1`,
+        values: [albumId],
+      };
 
-    const result = await this._pool.query(query);
-    console.log(result);
-    return result;
+      // jumlah likes album disimpan pada cache
+      const result = await this._pool.query(query);
+      await this._cacheService.set(
+        `albumLikes:${albumId}`,
+        JSON.stringify(result)
+      );
+      console.log(typeof result);
+      return result;
+    }
   }
 
   async editAlbumById(id, { name, year }) {
@@ -107,7 +121,7 @@ class AlbumsService {
     };
 
     const result = await this._pool.query(query);
-
+    await this._cacheService.delete(`albumLikes:${id}`);
     if (!result.rows.length) {
       throw new NotFoundError("Gagal memperbarui album. Id tidak ditemukan");
     }
@@ -120,7 +134,7 @@ class AlbumsService {
     };
 
     const result = await this._pool.query(query);
-
+    await this._cacheService.delete(`albumLikes:${id}`);
     if (!result.rows.length) {
       throw new NotFoundError("ALbum gagal dihapus. Id tidak ditemukan");
     }
